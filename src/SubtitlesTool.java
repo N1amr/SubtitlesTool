@@ -14,9 +14,8 @@ public class SubtitlesTool {
 	File rootFolder = new File(
 		"D:\\Videos\\Movies & TV\\Series\\The Big Bang Theory\\Season 05\\the-big-bang-theory-fifth-season_arabic-953588_2");
 
-	for (File subs : rootFolder.listFiles()) {
+	for (File subs : rootFolder.listFiles())
 	    removePos(subs);
-	}
 
 	System.out.println("Finished");
     }
@@ -39,12 +38,40 @@ public class SubtitlesTool {
 
 	PrintWriter printWriter = new PrintWriter(file);
 
-	for (String s : lines) {
+	for (String s : lines)
 	    printWriter.println(s);
-	}
 
 	printWriter.flush();
 	printWriter.close();
+    }
+
+    public static String shiftDate(String dateString, long shift) throws ParseException {
+	SimpleDateFormat simpleDateFormat = new SimpleDateFormat("H:m:s,S");
+
+	Date date = simpleDateFormat.parse(dateString);
+
+	date.setTime(date.getTime() + shift);
+	if (date.getTime() + shift < 0)
+	    date.setTime(0);
+
+	String newDateString = simpleDateFormat.format(date);
+	return newDateString;
+    }
+
+    public static String shiftDate(String dateString, long shift, String shiftfrom) throws ParseException {
+	SimpleDateFormat simpleDateFormat = new SimpleDateFormat("H:m:s,S");
+
+	Date date = simpleDateFormat.parse(dateString);
+	Date datezero = simpleDateFormat.parse(shiftfrom);
+
+	if (date.after(datezero))
+	    date.setTime(date.getTime() + shift);
+	    // if (date.getTime() + shift < 0)
+	    // date.setTime(0);
+
+	String newDateString = simpleDateFormat.format(date);
+	System.out.println(newDateString);
+	return newDateString;
     }
 
     public static void shiftSubtitles() {
@@ -71,42 +98,42 @@ public class SubtitlesTool {
 	shiftSubtitles(file, shift, shiftfrom, charset);
     }
 
-    private static void shiftSubtitles(File file, long shift, String shiftfrom, String charset) {
+    public static void shiftSubtitles(File file, long shift) {
 	try {
 	    String filename = file.getAbsolutePath();
-	    Scanner fin = new Scanner(new FileInputStream(file), charset);
+	    Scanner fin = new Scanner(new FileInputStream(file));
 	    ArrayList<String> filecontent = new ArrayList<>();
 	    while (fin.hasNextLine())
 		filecontent.add(fin.nextLine());
 	    fin.close();
 
-	    System.out.println(filecontent.get(3));
-
 	    String oldCopyPath = filename.substring(0, filename.length() - 4) + " old"
 		    + filename.substring(filename.length() - 4);
 
-	    // if (!(new File(oldCopyPath)).exists())
 	    file.renameTo(new File(oldCopyPath));
 
 	    file = new File(filename);
 
-	    // PrintWriter fout = new PrintWriter(file);
-	    PrintWriter fout = new PrintWriter(file.getAbsolutePath(), charset);
+	    PrintWriter fout = new PrintWriter(new FileOutputStream(file));
+
 	    for (String line : filecontent) {
 		if (line.contains(" --> ")) {
 		    int firstSpace = line.indexOf(' ');
 		    int lastSpace = line.indexOf(' ', firstSpace + 1);
 		    String fromTime = line.substring(0, firstSpace);
 		    String toTime = line.substring(lastSpace + 1);
-		    line = shiftDate(fromTime, shift, shiftfrom) + " --> " + shiftDate(toTime, shift, shiftfrom);
+
+		    line = shiftDate(fromTime, shift) + " --> " + shiftDate(toTime, shift);
 		}
 		fout.println(line);
 	    }
+
 	    fout.flush();
 	    fout.close();
 	} catch (Exception e) {
 	    e.printStackTrace();
 	}
+
     }
 
     private static void shiftSubtitles(File file, long shift, String shiftfrom) {
@@ -149,71 +176,41 @@ public class SubtitlesTool {
 	}
     }
 
-    public static String shiftDate(String dateString, long shift, String shiftfrom) throws ParseException {
-	SimpleDateFormat simpleDateFormat = new SimpleDateFormat("H:m:s,S");
-
-	Date date = simpleDateFormat.parse(dateString);
-	Date datezero = simpleDateFormat.parse(shiftfrom);
-
-	if (date.after(datezero)) {
-	    date.setTime(date.getTime() + shift);
-	    // if (date.getTime() + shift < 0)
-	    // date.setTime(0);
-	}
-
-	String newDateString = simpleDateFormat.format(date);
-	System.out.println(newDateString);
-	return newDateString;
-    }
-
-    public static void shiftSubtitles(File file, long shift) {
+    private static void shiftSubtitles(File file, long shift, String shiftfrom, String charset) {
 	try {
 	    String filename = file.getAbsolutePath();
-	    Scanner fin = new Scanner(new FileInputStream(file));
+	    Scanner fin = new Scanner(new FileInputStream(file), charset);
 	    ArrayList<String> filecontent = new ArrayList<>();
 	    while (fin.hasNextLine())
 		filecontent.add(fin.nextLine());
 	    fin.close();
 
+	    System.out.println(filecontent.get(3));
+
 	    String oldCopyPath = filename.substring(0, filename.length() - 4) + " old"
 		    + filename.substring(filename.length() - 4);
 
+	    // if (!(new File(oldCopyPath)).exists())
 	    file.renameTo(new File(oldCopyPath));
 
 	    file = new File(filename);
 
-	    PrintWriter fout = new PrintWriter(new FileOutputStream(file));
-
+	    // PrintWriter fout = new PrintWriter(file);
+	    PrintWriter fout = new PrintWriter(file.getAbsolutePath(), charset);
 	    for (String line : filecontent) {
 		if (line.contains(" --> ")) {
 		    int firstSpace = line.indexOf(' ');
 		    int lastSpace = line.indexOf(' ', firstSpace + 1);
 		    String fromTime = line.substring(0, firstSpace);
 		    String toTime = line.substring(lastSpace + 1);
-
-		    line = shiftDate(fromTime, shift) + " --> " + shiftDate(toTime, shift);
+		    line = shiftDate(fromTime, shift, shiftfrom) + " --> " + shiftDate(toTime, shift, shiftfrom);
 		}
 		fout.println(line);
 	    }
-
 	    fout.flush();
 	    fout.close();
 	} catch (Exception e) {
 	    e.printStackTrace();
 	}
-
-    }
-
-    public static String shiftDate(String dateString, long shift) throws ParseException {
-	SimpleDateFormat simpleDateFormat = new SimpleDateFormat("H:m:s,S");
-
-	Date date = simpleDateFormat.parse(dateString);
-
-	date.setTime(date.getTime() + shift);
-	if (date.getTime() + shift < 0)
-	    date.setTime(0);
-
-	String newDateString = simpleDateFormat.format(date);
-	return newDateString;
     }
 }
